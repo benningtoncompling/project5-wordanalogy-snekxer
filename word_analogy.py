@@ -26,8 +26,8 @@ import os
 import numpy
 
 vector_file = "smaller_model.txt"
-input_directory = "C:\\Users\\Paulina\\Documents\\GitHub\\project5-wordanalogy-snekxer\\GoogleTestSet\\"
-output_directory = "C:\\Users\\Paulina\\Documents\\GitHub\\project5-wordanalogy-snekxer\\OutputDirectory\\"
+input_directory = "GoogleTestSet/"
+output_directory = "OutputDirectory/"
 eval_file = "evaluation.txt"
 should_normalize = 0
 similarity_type = 0
@@ -84,15 +84,9 @@ def euclidean(words_vector):
     # euclidean distance = sqrt( sum( ( C+B-A[i] - vector[i])^2 ) )
     distance = {}
     for key, values in vector_dict.items():
-        try:
-            distance[key] = numpy.sqrt(sum(numpy.power(words_vector - values, 2)))
-        except:
-            print(values)
-            pass
-    keys = sorted(sorted(distance.keys()), key=lambda x: distance[x])
-    ordered = {}
-    [ordered.update({word: distance[word]}) for word in keys]
-    return list(ordered)[0]
+        distance[key] = numpy.sqrt(sum(numpy.power(words_vector - values, 2)))
+    word = min(distance.items(), key=lambda k: k[1])
+    return word[0]
 
 
 def manhattan(words_vector):
@@ -100,10 +94,8 @@ def manhattan(words_vector):
     distance = {}
     for key, values in vector_dict.items():
         distance[key] = sum(numpy.absolute(words_vector - values))
-    keys = sorted(sorted(distance.keys()), key=lambda x: distance[x])
-    ordered = {}
-    [ordered.update({word: distance[word]}) for word in keys]
-    return list(ordered)[0]
+    word = min(distance.items(), key=lambda k: k[1])
+    return word
 
 
 def cosine(words_vector):
@@ -111,11 +103,8 @@ def cosine(words_vector):
     distance = {}
     for key, values in vector_dict.items():
         distance[key] = sum(words_vector * values) / (numpy.sqrt(sum(numpy.power(words_vector, 2))) * numpy.sqrt(sum(numpy.power(values, 2))))
-    keys = sorted(sorted(distance.keys()), key=lambda x: distance[x], reverse=True)
-    ordered = {}
-    [ordered.update({word: distance[word]}) for word in keys]
-    return list(ordered)[0]
-
+    word = min(distance.items(), key=lambda k: k[1])
+    return word
 
 """
 You should generate one output file in output_directory for every input file in
@@ -151,26 +140,14 @@ if should_normalize == 1:
     vector_dict = normalize()
 
 output_dict = {}
-
-
-def verify_dict(words):
-    for word in words:
-        if word not in vector_dict:
-            vector_dict.setdefault(word, 0)
-
-
-
 for filename, file in files.items():
     file_analogies = []
     for file_words in file:
         # C+B-A
-        for word in file_words:
-            if word not in vector_dict.keys():
-                print('oops')
-                continue
-            if word == 'kwanza':
-                continue
-        words_vector = vector_dict[file_words[2]]  + vector_dict[file_words[1]] - vector_dict[file_words[0]]
+        if file_words[0] not in vector_dict.keys() or file_words[1] not in vector_dict.keys()or file_words[2] not in vector_dict.keys():
+            continue
+        else:
+            words_vector = vector_dict[file_words[2]]  + vector_dict[file_words[1]] - vector_dict[file_words[0]]
         if similarity_type == 0:
             word = euclidean(words_vector)
         elif similarity_type == 1:
@@ -179,12 +156,12 @@ for filename, file in files.items():
             word = cosine(words_vector)
         file_words.append(word)
         file_analogies.append(file_words)
-        #print(file_analogies[len(file_analogies)-1])
+        print(file_analogies[len(file_analogies)-1])
     output_dict[filename] = file_analogies
 
 
 
-for filename, file in output_dict:
+for filename, file in output_dict.items():
     filepath = os.path.join(output_directory, filename)
     with open(filepath, "w", encoding='UTF-8') as output:
         for lines in file:
