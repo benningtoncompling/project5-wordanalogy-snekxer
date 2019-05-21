@@ -25,9 +25,9 @@ import sys
 import os
 import numpy
 
-vector_file = "smaller_model.txt"
-input_directory = "GoogleTestSet/"
-output_directory = "OutputDirectory/"
+vector_file = "vector_model_5_10.txt"
+input_directory = "C:\\Users\\Paulina\\Documents\\GitHub\\project5-wordanalogy-snekxer\\GoogleTestSet"
+output_directory = "C:\\Users\\Paulina\\Documents\\GitHub\\project5-wordanalogy-snekxer\\OutputDirectory"
 eval_file = "evaluation.txt"
 should_normalize = 0
 similarity_type = 0
@@ -133,32 +133,39 @@ for filename in os.listdir(input_directory):
     filepath = os.path.join(input_directory, filename)
     file = numpy.array(open(filepath, 'r', encoding='UTF-8').readlines())
     file = [words.split(" ") for words in file]
-    [words.pop(3) for words in file]
     files[filename] = file
 
 if should_normalize == 1:
     vector_dict = normalize()
 
 output_dict = {}
-for filename, file in files.items():
-    file_analogies = []
-    for file_words in file:
-        # C+B-A
-        if file_words[0] not in vector_dict.keys() or file_words[1] not in vector_dict.keys()or file_words[2] not in vector_dict.keys():
-            continue
-        else:
-            words_vector = vector_dict[file_words[2]]  + vector_dict[file_words[1]] - vector_dict[file_words[0]]
-        if similarity_type == 0:
-            word = euclidean(words_vector)
-        elif similarity_type == 1:
-            word = manhattan(words_vector)
-        elif similarity_type == 2:
-            word = cosine(words_vector)
-        file_words.append(word)
-        file_analogies.append(file_words)
-        print(file_analogies[len(file_analogies)-1])
-    output_dict[filename] = file_analogies
 
+with open(eval_file, "w", encoding='UTF-8') as output:
+    for filename, file in files.items():
+        file_analogies = []
+        matched_analogies = 0
+        for file_words in file:
+            # C+B-A
+            if file_words[0] not in vector_dict.keys() or file_words[1] not in vector_dict.keys()or file_words[2] not in vector_dict.keys():
+                continue
+            else:
+                words_vector = vector_dict[file_words[2]]  + vector_dict[file_words[1]] - vector_dict[file_words[0]]
+            if similarity_type == 0:
+                word = euclidean(words_vector)
+            elif similarity_type == 1:
+                word = manhattan(words_vector)
+            elif similarity_type == 2:
+                word = cosine(words_vector)
+            print("predicted: " + word + " actual: " + file_words[3].strip("\n"))
+            file_analogies.append([file_words[0], file_words[1], file_words[2], word])
+            if word == file_words[3].strip("\n"):
+                print("match")
+                matched_analogies += 1
+        output_dict[filename] = file_analogies
+        total_analogies = len(file_analogies)
+        accuracy = (matched_analogies * 100)/total_analogies
+        output.write(filename + "\n" + "ACCURACY TOP1: " + str(accuracy) + "% (" + str(matched_analogies) + "/" + str(total_analogies) + ")\n")
+output.close()
 
 
 for filename, file in output_dict.items():
@@ -166,4 +173,4 @@ for filename, file in output_dict.items():
     with open(filepath, "w", encoding='UTF-8') as output:
         for lines in file:
             output.write(lines[0] + " " + lines[1] + " " + lines[2] + " " + lines[3] + "\n")
-        output.close()
+    output.close()
