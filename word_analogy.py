@@ -25,12 +25,12 @@ import sys
 import os
 import numpy
 
-vector_file = "vector_model_5_10.txt"
-input_directory = "C:\\Users\\Paulina\\Documents\\GitHub\\project5-wordanalogy-snekxer\\GoogleTestSet"
-output_directory = "C:\\Users\\Paulina\\Documents\\GitHub\\project5-wordanalogy-snekxer\\OutputDirectory"
-eval_file = "evaluation.txt"
-should_normalize = 0
-similarity_type = 0
+vector_file = sys.argv[1]
+input_directory = sys.argv[2]
+output_directory = sys.argv[3]
+eval_file = output_directory + "/" + sys.argv[4]
+should_normalize = sys.argv[5]
+similarity_type = sys.argv[6]
 
 vectors_in_file = open(vector_file, "r", encoding='UTF-8').read().splitlines()
 vectors_in_file = [vector.split(" ") for vector in vectors_in_file]
@@ -95,7 +95,7 @@ def manhattan(words_vector):
     for key, values in vector_dict.items():
         distance[key] = sum(numpy.absolute(words_vector - values))
     word = min(distance.items(), key=lambda k: k[1])
-    return word
+    return word[0]
 
 
 def cosine(words_vector):
@@ -103,8 +103,8 @@ def cosine(words_vector):
     distance = {}
     for key, values in vector_dict.items():
         distance[key] = sum(words_vector * values) / (numpy.sqrt(sum(numpy.power(words_vector, 2))) * numpy.sqrt(sum(numpy.power(values, 2))))
-    word = min(distance.items(), key=lambda k: k[1])
-    return word
+    word = max(distance.items(), key=lambda k: k[1])
+    return word[0]
 
 """
 You should generate one output file in output_directory for every input file in
